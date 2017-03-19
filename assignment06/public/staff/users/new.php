@@ -16,6 +16,8 @@ if(is_post_request() && request_is_same_domain()) {
   ensure_csrf_token_valid();
 
   // Confirm that values are present before accessing them.
+  if(isset($_POST['password'])) { $user['password'] = $_POST['password']; }
+  if(isset($_POST['confirm_password'])) { $user['confirm_password'] = $_POST['confirm_password']; }
   if(isset($_POST['first_name'])) { $user['first_name'] = $_POST['first_name']; }
   if(isset($_POST['last_name'])) { $user['last_name'] = $_POST['last_name']; }
   if(isset($_POST['username'])) { $user['username'] = $_POST['username']; }

@@ -523,7 +523,13 @@
       $errors[] = "Username must be at least 12 characters.";
     } elseif (!has_valid_password_format($user['password'])) {
       $errors[] = "Password must include at least one uppercase letter, lowercase letter, number, and symbol";
-    } 
+    }
+
+    if (is_blank($user['confirm_password'])) {
+      $errors[] = "Confirm Password cannot be blank.";
+    }elseif($user['password']!==$user[confirm_password]){
+         $errors[] = "Password and Confirm Password do not match"
+    }
 
     return $errors;
   }
