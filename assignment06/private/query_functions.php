@@ -545,14 +545,19 @@
     }
 
     $created_at = date("Y-m-d H:i:s");
+
+    //$user['password']=db_escape($db, $user['password']);
+    $hashed_password = password_hash($user['password'], PASSWORD_BCRYPT);
+
     $sql = "INSERT INTO users ";
-    $sql .= "(first_name, last_name, email, username, created_at) ";
+    $sql .= "(first_name, last_name, email, username, created_at, hashed_password) ";
     $sql .= "VALUES (";
     $sql .= "'" . db_escape($db, $user['first_name']) . "',";
     $sql .= "'" . db_escape($db, $user['last_name']) . "',";
     $sql .= "'" . db_escape($db, $user['email']) . "',";
     $sql .= "'" . db_escape($db, $user['username']) . "',";
-    $sql .= "'" . $created_at . "'";
+    $sql .= "'" . $created_at . "',";
+    $sql .= "'" . $hashed_password . "'";
     $sql .= ");";
     // For INSERT statements, $result is just true/false
     $result = db_query($db, $sql);
@@ -576,12 +581,15 @@
     if (!empty($errors)) {
       return $errors;
     }
+    //$user['password']=db_escape($db, $user['password']);
+    $hashed_password = password_hash($user['password'], PASSWORD_BCRYPT);
 
     $sql = "UPDATE users SET ";
     $sql .= "first_name='" . db_escape($db, $user['first_name']) . "', ";
     $sql .= "last_name='" . db_escape($db, $user['last_name']) . "', ";
     $sql .= "email='" . db_escape($db, $user['email']) . "', ";
-    $sql .= "username='" . db_escape($db, $user['username']) . "' ";
+    $sql .= "username='" . db_escape($db, $user['username']) . "', ";
+    $sql .= "hashed_password='" . $hashed_password . "' ";
     $sql .= "WHERE id='" . db_escape($db, $user['id']) . "' ";
     $sql .= "LIMIT 1;";
     // For update_user statements, $result is just true/false
