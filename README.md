@@ -1,4 +1,4 @@
-# Web-Security-week6
+
 # Project 6 - Globitek Authentication and Login Throttling
 
 Time spent: **X** hours spent in total
