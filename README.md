@@ -8,7 +8,7 @@ Time spent: **X** hours spent in total
 The following **required** functionality is completed:
 
 1\. "staff/users/new.php" and "staff/users/edit.php"
-  * [ ]  Form with inputs for "Password" and "Confirm Password"
+  * [x]  Form with inputs for "Password" and "Confirm Password"
   * [ ]  Strong password requirements text
 
 2\. Data validations
