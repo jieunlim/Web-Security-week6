@@ -9,7 +9,9 @@ $user = array(
   'first_name' => '',
   'last_name' => '',
   'username' => '',
-  'email' => ''
+  'email' => '',
+  'password' => '',
+  'confirm_password' => ''
 );
 
 if(is_post_request() && request_is_same_domain()) {
@@ -52,9 +54,11 @@ if(is_post_request() && request_is_same_domain()) {
     <input type="text" name="username" value="<?php echo h($user['username']); ?>" /><br />
     Password:<br />
     <input type="password" name="password" value="" /><br />
-    Confirm password:<br />
+    Password Confirmation:<br />
     <input type="password" name="confrim_password" value="" /><br />
-    Passwords should be at least 12 characters and include at least one uppercase letter, lowercase letter, number, and symbol.
+    <p>
+      Passwords should be at least 12 characters and include at least one uppercase letter, lowercase letter, number, and symbol.
+    </p>
     Email:<br />
     <input type="text" name="email" value="<?php echo h($user['email']); ?>" /><br />
     <br />

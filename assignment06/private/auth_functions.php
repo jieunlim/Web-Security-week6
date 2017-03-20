@@ -13,7 +13,7 @@
   // A one-step function to destroy the current session
   function destroy_current_session() {
     // TODO destroy the session file completely
-  }
+    }
 
   // Performs all actions necessary to log out a user
   function log_out_user() {
@@ -69,5 +69,46 @@
       // Do nothing, let the rest of the page proceed
     }
   }
+
+  function record_failed_login($username) {
+    // The failure technically already happened, so
+    // get the time ASAP.
+    $sql_date = date("Y-m-d H:i:s");
+
+    $fl_result = find_failed_login($username);
+    $failed_login = db_fetch_assoc($fl_result);
+
+    if(!$failed_login) {
+      $failed_login = [
+        'username' => $username,
+        'count' => 1,
+        'last_attempt' => $sql_date
+      ];
+      insert_failed_login($failed_login);
+    } else {
+      $failed_login['count'] = $failed_login['count'] + 1;
+      $failed_login['last_attempt'] = $sql_date;
+      update_failed_login($failed_login);
+    }
+    return true;
+  }
+
+  function throttle_time($username) {
+   $threshold = 5; //maximum 5 attempts
+   $lockout = 60 * 5; // login after 5 min
+   $fl_result = find_failed_login($username);
+   $failed_login = db_fetch_assoc($fl_result);
+   if(!isset($failed_login)) { return 0; }
+   if($failed_login['count'] < $threshold) { return 0; }
+   $last_attempt = strtotime($failed_login['last_attempt']);
+   $since_last_attempt = time() - $last_attempt;
+   $remaining_lockout = $lockout - $since_last_attempt;
+   if($remaining_lockout < 0) {//seconds_remaining
+     reset_failed_login($username);
+     return 0;
+   } else {
+     return $remaining_lockout;
+   }
+ }
 
 ?>

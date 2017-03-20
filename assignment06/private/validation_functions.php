@@ -31,7 +31,7 @@
     $has_at_number =  preg_match('/[0-9]/', $value);
     $has_at_lowercase = preg_match('/[a-z]/', $value);
     $has_at_uppercase = preg_match('/[A-Z]/', $value);
-    return $has_at_symbol && $has_at_number && $has_at_lowercase $$ $has_at_uppercase;
+    return $has_at_symbol && $has_at_number && $has_at_lowercase && $has_at_uppercase;
   }
 
 

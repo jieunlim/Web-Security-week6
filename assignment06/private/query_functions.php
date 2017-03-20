@@ -163,7 +163,7 @@
     $sql .= "'" . db_escape($db, $state['name']) . "',";
     $sql .= "'" . db_escape($db, $state['code']) . "',";
     $sql .= "'" . db_escape($db, $state['country_id']) . "'";
-    $sql .= ");";
+    $sql .= "); ";
     // For INSERT statements, $result is just true/false
     $result = db_query($db, $sql);
     if($result) {
@@ -192,7 +192,7 @@
     $sql .= "code='" . db_escape($db, $state['code']) . "', ";
     $sql .= "country_id='" . db_escape($db, $state['country_id']) . "' ";
     $sql .= "WHERE id='" . db_escape($db, $state['id']) . "' ";
-    $sql .= "LIMIT 1;";
+    $sql .= "LIMIT 1;" ;
     // For update_state statements, $result is just true/false
     $result = db_query($db, $sql);
     if($result) {
@@ -483,12 +483,17 @@
   function find_users_by_username($username='') {
     global $db;
     $sql = "SELECT * FROM users ";
-    $sql .= "WHERE username = '" . db_escape($db, $username) . "';";
+    $sql .= "WHERE username = '" . db_escape($db, $username) . "' ;";
     $users_result = db_query($db, $sql);
+
     return $users_result;
   }
 
   function validate_user($user, $errors=array()) {
+    /*bonus 4 previous password
+    if(isset($user['new_password'])){
+      if()
+    }*/
     if (is_blank($user['first_name'])) {
       $errors[] = "First name cannot be blank.";
     } elseif (!has_length($user['first_name'], array('min' => 2, 'max' => 255))) {
@@ -517,19 +522,22 @@
       $errors[] = "Username not allowed. Try another.";
     }
 
+
     if (is_blank($user['password'])) {
-      $errors[] = "Password cannot be blank.";
-    } elseif (!has_length($user['username'], array('min' => 12))) {
-      $errors[] = "Username must be at least 12 characters.";
+        if($user['submit']!=="Update"){
+        }else {$errors[] = "Password cannot be blank.";}
+    } elseif (!has_length($user['username'], array('min' => 12, 'max' => 72))) {
+      $errors[] = "Password must be at least 12 characters.";
     } elseif (!has_valid_password_format($user['password'])) {
       $errors[] = "Password must include at least one uppercase letter, lowercase letter, number, and symbol";
     }
 
     if (is_blank($user['confirm_password'])) {
       $errors[] = "Confirm Password cannot be blank.";
-    }elseif($user['password']!==$user[confirm_password]){
-         $errors[] = "Password and Confirm Password do not match"
+    } elseif($user['password']!==$user['confirm_password']){
+      $errors[] = "Password and Confirm Password do not match";
     }
+
 
     return $errors;
   }
@@ -546,8 +554,8 @@
 
     $created_at = date("Y-m-d H:i:s");
 
-    //$user['password']=db_escape($db, $user['password']);
-    $hashed_password = password_hash($user['password'], PASSWORD_BCRYPT);
+    $user['password']=db_escape($db, $user['password']);
+    $hashed_password = password_hash($user['password'], PASSWORD_BCRYPT, ["cost"=>11]);//encryption
 
     $sql = "INSERT INTO users ";
     $sql .= "(first_name, last_name, email, username, created_at, hashed_password) ";
@@ -581,8 +589,12 @@
     if (!empty($errors)) {
       return $errors;
     }
-    //$user['password']=db_escape($db, $user['password']);
-    $hashed_password = password_hash($user['password'], PASSWORD_BCRYPT);
+
+    $user['new_password'];
+    $user['new_password'] = db_escape($db, $user['new_password']);
+    if(!is_blank($user['new_password'])){
+    $hashed_password = password_hash($user['new_password'], PASSWORD_BCRYPT, ["cost"=>11]);
+    }
 
     $sql = "UPDATE users SET ";
     $sql .= "first_name='" . db_escape($db, $user['first_name']) . "', ";
@@ -619,6 +631,78 @@
       return true;
     } else {
       // The SQL DELETE statement failed.
+      // Just show the error, not the form
+      echo db_error($db);
+      db_close($db);
+      exit;
+    }
+  }
+  //Failed_login query
+
+  function find_failed_login($username=null){
+    global $db;
+    $sql = "SELECT * FROM failed_logins ";
+    $sql .= "WHERE username = '" . db_escape($db, $username) . "' ";
+    $sql .= "LIMIT 1;";
+    $result = db_query($db, $sql);
+
+    return $result;
+  }
+
+  function insert_failed_login($failed_login) {
+     global $db;
+
+    $sql = "INSERT INTO failed_logins ";
+    $sql .= "(username, count, last_attempt) ";
+    $sql .= "VALUES (";
+    $sql .= "'" . db_escape($db, $failed_login['username']) . "', ";
+    $sql .= "'" . db_escape($db, $failed_login['count']) . "', ";
+    $sql .= "'" . db_escape($db, $failed_login['last_attempt']) . "' ";
+    $sql .= ");";
+    $result = db_query($db, $sql);
+    if($result) {
+      return true;
+    } else {
+      echo db_error($db);
+      db_close($db);
+      exit;
+    }
+  }
+
+  function update_failed_login($failed_login) {
+    global $db;
+
+    $sql = "UPDATE failed_logins SET ";
+    $sql .= "count='" . db_escape($db, $failed_login['count']) . "', ";
+    $sql .= "last_attempt='" . db_escape($db, $failed_login['last_attempt']) . "' ";
+    $sql .= "WHERE username='" . db_escape($db, $failed_login['username']) . "' ";
+    $sql .= "LIMIT 1;";
+    //$result is just true/false
+    $result = db_query($db, $sql);
+    if($result) {
+      return true;
+    } else {
+      // The SQL UPDATE statement failed.
+      // Just show the error, not the form
+      echo db_error($db);
+      db_close($db);
+      exit;
+    }
+  }
+
+  function reset_failed_login($username) {
+    global $db;
+
+    $sql = "UPDATE failed_logins SET ";
+    $sql .= "count= 0";
+    $sql .= "WHERE username='" . db_escape($db, $username) . "' ";
+    $sql .= "LIMIT 1;";
+    //$result is just true/false
+    $result = db_query($db, $sql);
+    if($result) {
+      return true;
+    } else {
+      // The SQL UPDATE statement failed.
       // Just show the error, not the form
       echo db_error($db);
       db_close($db);

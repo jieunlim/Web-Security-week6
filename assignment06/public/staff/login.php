@@ -1,6 +1,5 @@
 <?php
 require_once('../../private/initialize.php');
-
 // Until we learn about encryption, we will use an unencrypted
 // master password as a stand-in. It should go without saying
 // that this should *never* be done in real production code.
@@ -9,6 +8,7 @@ require_once('../../private/initialize.php');
 // Set default values for all variables the page needs.
 $errors = array();
 $username = '';
+$failed_login = 0;
 $password = '';
 
 if(is_post_request() && request_is_same_domain()) {
@@ -17,7 +17,9 @@ if(is_post_request() && request_is_same_domain()) {
   // Confirm that values are present before accessing them.
   if(isset($_POST['username'])) { $username = $_POST['username']; }
   if(isset($_POST['password'])) { $password = $_POST['password']; }
-
+  if($remaining = throttle_time($username)){
+    $errors[] = "Too many failed logins for this username. You will need to wait ".h($remaining). " minutes before attempting another login";
+  }else{
   // Validations
   if (is_blank($username)) {
     $errors[] = "Username cannot be blank.";
@@ -25,8 +27,7 @@ if(is_post_request() && request_is_same_domain()) {
   if (is_blank($password)) {
     $errors[] = "Password cannot be blank.";
   }
-
-
+}
   // If there were no errors, submit data to database
   if (empty($errors)) {
 
@@ -39,15 +40,19 @@ if(is_post_request() && request_is_same_domain()) {
 
         // Username found, password matches
         log_in_user($user);
+        reset_failed_login($use['username']);
         // Redirect to the staff menu after login
         redirect_to('index.php');
       } else {
         // Username found, but password does not match.
         $errors[] = "Log in was unsuccessful.";
+        $faild_login = record_failed_login($username);
       }
     } else {
       // No username found
       $errors[] ="Log in was not successful.";
+      $faild_login = record_failed_login($username);
+
     }
   }
 }
